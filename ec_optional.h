@@ -7,6 +7,116 @@
 #include <optional>
 namespace Yc
 {
+    namespace details
+    {
+        template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{ 0 } >
+        struct ec_optional_trivially_copyable
+        {
+            ErrorCode ec;
+            union U
+            {
+                T t;
+            }u;
+            constexpr ec_optional_trivially_copyable(ErrorCode ec)noexcept : ec{ec}
+            { }
+            constexpr ec_optional_trivially_copyable(const ec_optional_trivially_copyable&) = default;
+            constexpr ec_optional_trivially_copyable& operator=(const ec_optional_trivially_copyable&) = default;
+            ~ec_optional_trivially_copyable() = default;
+        };
+        template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{ 0 } >
+        struct ec_optional_trivially_destructable
+        {
+            ErrorCode ec;
+            union U
+            {
+                T t;
+                ~U() = default;
+            }u;
+            constexpr ec_optional_trivially_destructable(const ec_optional_trivially_destructable& other)
+                noexcept(std::is_nothrow_copy_constructible_v<T>): ec{other.ec }
+            {
+                static_assert(std::is_copy_constructible_v<T>);
+                if (other.ec == no_error)
+                {
+                    std::construct_at(std::addressof(u.t), other.u.t);
+                }
+            }
+            constexpr ec_optional_trivially_destructable(ec_optional_trivially_destructable&& other)
+                noexcept(std::is_nothrow_move_constructible_v<T>) : ec{ other.ec }
+            {
+                static_assert(std::is_move_constructible_v<T>);
+                if (other.ec == no_error)
+                {
+                    std::construct_at(std::addressof(u.t), std::move(other.u.t));
+                }
+            }
+            constexpr ec_optional_trivially_destructable& operator=(const ec_optional_trivially_destructable& other)
+                noexcept(std::is_nothrow_copy_assignable_v<T>)
+            {
+                static_assert(std::is_copy_assignable_v<T>);
+                if (this == std::addressof(other))
+                {
+                    return *this;
+                }
+                if (ec == other.ec)
+                {
+                    if (ec == no_error)
+                    {
+                        u.t = other.u.t;
+                    }
+                }
+                else
+                {
+                    if (ec == no_error)
+                    {
+                        std::destroy_at(std::addressof(u.t));
+                    }
+                    else
+                    {
+                        if (other.ec == no_error)
+                        {
+                            std::construct_at(std::addressof(u.t), other.u.t);
+                        }
+                    }
+                }
+                ec = other.ec;
+                return *this;
+            }
+            constexpr ec_optional_trivially_destructable& operator=(ec_optional_trivially_destructable&& other)
+                noexcept(std::is_nothrow_move_assignable_v<T>)
+            {
+                static_assert(std::is_move_assignable_v<T>);
+                if (this == std::addressof(other))
+                {
+                    return *this;
+                }
+                if (ec == other.ec)
+                {
+                    if (ec == no_error)
+                    {
+                        u.t = std::move(other.u.t);
+                    }
+                }
+                else
+                {
+                    if (ec == no_error)
+                    {
+                        std::destroy_at(std::addressof(u.t));
+                    }
+                    else
+                    {
+                        if (other.ec == no_error)
+                        {
+                            std::construct_at(std::addressof(u.t), std::move(other.u.t));
+                        }
+                    }
+                }
+                ec = other.ec;
+                return *this;
+            }
+            ~ec_optional_trivially_destructable() = default;
+        };
+    }
     struct legacy_function_tag_t
     { };
     inline constexpr legacy_function_tag_t legacy_function_tag{};
