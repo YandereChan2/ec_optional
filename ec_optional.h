@@ -1,5 +1,4 @@
 #pragma once
-#include "union_data.h"
 #include <cassert>
 #include <utility>
 #include <memory>
@@ -339,7 +338,7 @@ namespace Yc
             return opt.u.t;
         }
         template<class Func>
-        constexpr void legacy_function_invoke(Func f)noexcept // ��ֹ�׳��쳣
+        constexpr void legacy_function_invoke(Func f)noexcept // ½ûÖ¹Å×³öÒì³£
         {
             if (has_value())
             {
