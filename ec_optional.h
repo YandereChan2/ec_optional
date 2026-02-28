@@ -88,7 +88,7 @@ namespace Yc
             constexpr ec_optional_trivially_destructable& operator=(ec_optional_trivially_destructable&& other)
                 noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>)
             {
-                static_assert(std::is_move_assignable_v<T>);
+                static_assert(std::is_move_constructible_v<T> && std::is_move_assignable_v<T>);
                 if (this == std::addressof(other))
                 {
                     return *this;
@@ -126,7 +126,7 @@ namespace Yc
             union U
             {
                 T t;
-                ~U()noexcept
+                ~U()
                 { }
             }u;
             constexpr ec_optional_normal(ErrorCode ec)noexcept : ec{ec}
@@ -182,7 +182,7 @@ namespace Yc
                 return *this;
             }
             constexpr ec_optional_normal& operator=(ec_optional_normal&& other)
-                noexcept(std::is_nothrow_copy_constructible_v<T> && std::is_nothrow_move_assignable_v<T>)
+                noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>)
             {
                 static_assert(std::is_move_constructible_v<T> && std::is_move_assignable_v<T>);
                 if (this == std::addressof(other))
@@ -250,11 +250,14 @@ namespace Yc
         template<class Func>
         constexpr ec_optional(legacy_function_tag_t, Func f)noexcept : opt{no_error}
         {
-            opt.ec = f(std::addressof(value.data));
+            opt.ec = f(std::addressof(opt.u.t));
         }
         constexpr ec_optional(ErrorCode ec)noexcept : opt{ec}
         {
-            assert(ec != no_error);
+            if (ec == no_error)
+            {
+                *(int*)nullptr;
+            }
         }
         constexpr ec_optional(std::nullopt_t, ErrorCode ec)noexcept : ec_optional(ec)
         { }
@@ -305,7 +308,10 @@ namespace Yc
         }
         constexpr void reset(ErrorCode ec)noexcept
         {
-            assert(ec != no_error);
+            if (ec == no_error)
+            {
+                *(int*)nullptr;
+            }
             if (this->opt.ec == no_error)
             {
                 std::destroy_at(std::addressof(opt.u.t));
@@ -318,12 +324,15 @@ namespace Yc
         {
             if constexpr (!std::is_nothrow_constructible_v<T, Args...>)
             {
-                assert(ec != no_error);
+                if (ec == no_error)
+                {
+                    *(int*)nullptr;
+                }
             }
             struct _guard
             {
                 ErrorCode* tmp{};
-                ErrorCode& ec;
+                ErrorCode ec;
                 ~_guard()
                 {
                     if (tmp)
@@ -338,13 +347,13 @@ namespace Yc
             return opt.u.t;
         }
         template<class Func>
-        constexpr void legacy_function_invoke(Func f)noexcept // ½ûÖ¹Å×³öÒì³£
+        constexpr void legacy_function_invoke(Func f)noexcept // 入参不能抛异常
         {
             if (has_value())
             {
                 std::destroy_at(std::addressof(opt.u.t));
             }
-            opt.ec = f(std::addressof(opt.u.t));
+            opt.ec = std::move(f)(std::addressof(opt.u.t));
         }
         ~ec_optional() = default;
         constexpr ErrorCode error_code()const noexcept
