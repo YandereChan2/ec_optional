@@ -6,6 +6,9 @@
 #include <optional>
 #include <bit>
 #include <array>
+#include <exception>
+#include <cstdint>
+#include <algorithm>
 namespace Yc
 {
     namespace details
@@ -222,13 +225,50 @@ namespace Yc
             }
         };
     }
+
+    class bad_ec_opt_access : public std::exception
+    {
+        unsigned char buf[sizeof(uintmax_t)]{};
+    public:
+        template<class Enum> 
+        bad_ec_opt_access(Enum e)noexcept
+        {
+            static_assert(std::is_enum_v<Enum> || std::is_integral_v<Enum>);
+            static_assert(sizeof(Enum) <= sizeof(uintmax_t));
+            std::array<unsigned char, sizeof(Enum)> arr = std::bit_cast<std::array<unsigned char, sizeof(Enum)>>(e);
+            std::copy(arr.begin(), arr.end(), buf);
+        }
+
+        const char* what()const noexcept override
+        {
+            return "access ec_optional with error code";
+        }
+
+        bad_ec_opt_access& operator=(const bad_ec_opt_access& other)noexcept
+        {
+            std::copy(other.buf, other.buf + sizeof(uintmax_t), buf);
+            return *this;
+        }
+
+        template<class ErrorCode>
+        ErrorCode error_code()const noexcept
+        {
+            static_assert(std::is_enum_v<ErrorCode> || std::is_integral_v<ErrorCode>);
+            std::array<unsigned char, sizeof(ErrorCode)> arr{};
+            std::copy(buf, buf + sizeof(ErrorCode), arr.begin());
+            return std::bit_cast<ErrorCode>(arr);
+        }
+    };
+
     struct legacy_function_tag_t
     { };
     inline constexpr legacy_function_tag_t legacy_function_tag{};
     template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{0} >
     class ec_optional
     {
-        static_assert(!std::is_same_v<T, std::nullopt_t>, "T shouldn't be same as std::nullopt_t");
+        static_assert(!std::is_same_v<std::remove_cv_t<T>, std::nullopt_t>, "T shouldn't be same as std::nullopt_t");
+        static_assert(!std::is_same_v<std::remove_cv_t<T>, std::in_place_t>, "T shouldn't be same as std::in_place_t");
+        static_assert(std::is_destructible_v<T> && (!std::is_array_v<T>) && (!std::is_reference_v<T>));
         static_assert(std::is_integral_v<ErrorCode> || std::is_enum_v<ErrorCode>);
         std::conditional_t<std::is_trivially_copyable_v<T>,
             details::ec_optional_trivially_copyable<T, ErrorCode, no_error>,
@@ -247,6 +287,9 @@ namespace Yc
         }
         static inline constexpr ErrorCode default_err = default_error();
     public:
+        using value_type = T;
+        using error_code_type = ErrorCode;
+        static inline constexpr error_code_type no_error = no_error;
         template<class Func>
         constexpr ec_optional(legacy_function_tag_t, Func f)noexcept : opt{no_error}
         {
@@ -364,7 +407,7 @@ namespace Yc
         {
             if (opt.ec != no_error)
             {
-                throw std::bad_optional_access{};
+                throw bad_ec_opt_access{error_code()};
             }
             return opt.u.t;
         }
@@ -372,7 +415,7 @@ namespace Yc
         {
             if (opt.ec != no_error)
             {
-                throw std::bad_optional_access{};
+                throw bad_ec_opt_access{ error_code() };
             }
             return std::move(opt.u.t);
         }
@@ -380,7 +423,7 @@ namespace Yc
         {
             if (opt.ec != no_error)
             {
-                throw std::bad_optional_access{};
+                throw bad_ec_opt_access{ error_code() };
             }
             return opt.u.t;
         }
@@ -388,7 +431,7 @@ namespace Yc
         {
             if (opt.ec != no_error)
             {
-                throw std::bad_optional_access{};
+                throw bad_ec_opt_access{ error_code() };
             }
             return std::move(opt.u.t);
         }
