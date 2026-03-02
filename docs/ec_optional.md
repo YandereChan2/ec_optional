@@ -12,7 +12,7 @@ template<
 
 `ec_optional` 是对出参-错误码风格结果的轻量化封装。`ec_optional` 的任何实例在同一个时间点要么 _含值_ ，要么 _出错_ 。如果对象 _出错_ 那么它保有一个确定的错误码，不能是 `no_error` 。如果对象 _含值_ 那么获取其错误码会得到 `no_error` 。
 
-如果一个 `ec_optional` 含值，那么保证该值内嵌于 `ec_optional` 对象。因此，`ec_optional` 对象模拟的是对象而非指针，尽管定义了 `operator*()` 和 `operator->()` 运算符。
+如果一个 `ec_optional` 含值，那么保证该值内嵌于 `ec_optional` 对象。因此，`ec_optional` 对象模拟的是对象而非指针，尽管定义了 [`operator*`](operator_star.md) 和 [`operator->`](operator_star.md) 运算符。
 
 当一个 `ec_optional<T, ErrorCode, no_error>` 类型的对象被按语境转换到 `bool` 时，对象含值的情况下转换返回 `true`，出错的情况下返回 `false`。
 
@@ -53,25 +53,25 @@ template<
 |:-|:-|
 |（构造函数）|构造 `ec_optional` <br>（公开成员函数）|
 |[（析构函数）](destructor.md)|析构 `ec_optional` <br>（公开成员函数）|
-|`operator=`|对内容赋值<br>(公开成员函数)|
+|[`operator=`](operator_assignment.md)|对内容赋值<br>(公开成员函数)|
 
 ### 观察器
 
 | | |
 |:-|:-|
 |[`operator->`<br>`operator*`](operator_star.md)|访问所含值<br>（公开成员函数）|
-|`operator bool`<br>`has_value`|检查对象是否 _含值_ <br>（公开成员函数）|
+|[`operator bool`<br>`has_value`](has_value.md)|检查对象是否 _含值_ <br>（公开成员函数）|
 |`value`|返回所含值<br>（公开成员函数）|
-|`error_code`|返回错误码<br>（公开成员函数）|
+|[`error_code`](error_code.md)|返回错误码<br>（公开成员函数）|
 
 ### 修改器
 
 | | |
 |:-|:-|
 |`swap`|交换内容<br>（公开成员函数）<br>（公开成员函数）|
-|`reset`|销毁所含值，并设置对象为 _出错_<br>（公开成员函数）|
-|`emplace`|原位构造一个值，如果构造抛出异常那么它 _出错_<br>（公开成员函数）|
-|`legacy_function_invoke`|使用C风格初始化其为 _含值_ 或 _出错_|
+|[`reset`](reset.md)|销毁所含值，并设置对象为 _出错_ ，并配置错误码<br>（公开成员函数）|
+|[`emplace`](emplace.md)|原位构造一个值，如果构造抛出异常那么设置它 _出错_ 并配置错误码，<br>（公开成员函数）|
+|[`legacy_function_invoke`](legacy_function_invoke.md)|使用C风格初始化其为 _含值_ 或 _出错_|
 
 ## 辅助类
 

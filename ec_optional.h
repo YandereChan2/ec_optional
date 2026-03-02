@@ -13,7 +13,7 @@ namespace Yc
 {
     namespace details
     {
-        template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{ 0 } >
+        template<class T, class ErrorCode, ErrorCode no_err = ErrorCode{ 0 } >
         struct ec_optional_trivially_copyable
         {
             ErrorCode ec;
@@ -27,7 +27,7 @@ namespace Yc
             constexpr ec_optional_trivially_copyable& operator=(const ec_optional_trivially_copyable&) = default;
             ~ec_optional_trivially_copyable() = default;
         };
-        template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{ 0 } >
+        template<class T, class ErrorCode, ErrorCode no_err = ErrorCode{ 0 } >
         struct ec_optional_trivially_destructable
         {
             ErrorCode ec;
@@ -42,7 +42,7 @@ namespace Yc
                 noexcept(std::is_nothrow_copy_constructible_v<T>): ec{other.ec }
             {
                 static_assert(std::is_copy_constructible_v<T>);
-                if (other.ec == no_error)
+                if (other.ec == no_err)
                 {
                     std::construct_at(std::addressof(u.t), other.u.t);
                 }
@@ -51,7 +51,7 @@ namespace Yc
                 noexcept(std::is_nothrow_move_constructible_v<T>) : ec{ other.ec }
             {
                 static_assert(std::is_move_constructible_v<T>);
-                if (other.ec == no_error)
+                if (other.ec == no_err)
                 {
                     std::construct_at(std::addressof(u.t), std::move(other.u.t));
                 }
@@ -66,20 +66,20 @@ namespace Yc
                 }
                 if (ec == other.ec)
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         u.t = other.u.t;
                     }
                 }
                 else
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         std::destroy_at(std::addressof(u.t));
                     }
                     else
                     {
-                        if (other.ec == no_error)
+                        if (other.ec == no_err)
                         {
                             std::construct_at(std::addressof(u.t), other.u.t);
                         }
@@ -98,20 +98,20 @@ namespace Yc
                 }
                 if (ec == other.ec)
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         u.t = std::move(other.u.t);
                     }
                 }
                 else
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         std::destroy_at(std::addressof(u.t));
                     }
                     else
                     {
-                        if (other.ec == no_error)
+                        if (other.ec == no_err)
                         {
                             std::construct_at(std::addressof(u.t), std::move(other.u.t));
                         }
@@ -122,7 +122,7 @@ namespace Yc
             }
             ~ec_optional_trivially_destructable() = default;
         };
-        template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{ 0 } >
+        template<class T, class ErrorCode, ErrorCode no_err = ErrorCode{ 0 } >
         struct ec_optional_normal
         {
             ErrorCode ec;
@@ -138,7 +138,7 @@ namespace Yc
                 noexcept(std::is_nothrow_copy_constructible_v<T>) : ec{ other.ec }
             {
                 static_assert(std::is_copy_constructible_v<T>);
-                if (other.ec == no_error)
+                if (other.ec == no_err)
                 {
                     std::construct_at(std::addressof(u.t), other.u.t);
                 }
@@ -147,7 +147,7 @@ namespace Yc
                 noexcept(std::is_nothrow_move_constructible_v<T>) : ec{ other.ec }
             {
                 static_assert(std::is_move_constructible_v<T>);
-                if (other.ec == no_error)
+                if (other.ec == no_err)
                 {
                     std::construct_at(std::addressof(u.t), std::move(other.u.t));
                 }
@@ -162,20 +162,20 @@ namespace Yc
                 }
                 if (ec == other.ec)
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         u.t = other.u.t;
                     }
                 }
                 else
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         std::destroy_at(std::addressof(u.t));
                     }
                     else
                     {
-                        if (other.ec == no_error)
+                        if (other.ec == no_err)
                         {
                             std::construct_at(std::addressof(u.t), other.u.t);
                         }
@@ -194,20 +194,20 @@ namespace Yc
                 }
                 if (ec == other.ec)
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         u.t = std::move(other.u.t);
                     }
                 }
                 else
                 {
-                    if (ec == no_error)
+                    if (ec == no_err)
                     {
                         std::destroy_at(std::addressof(u.t));
                     }
                     else
                     {
-                        if (other.ec == no_error)
+                        if (other.ec == no_err)
                         {
                             std::construct_at(std::addressof(u.t), std::move(other.u.t));
                         }
@@ -218,7 +218,7 @@ namespace Yc
             }
             constexpr ~ec_optional_normal()
             {
-                if (ec == no_error)
+                if (ec == no_err)
                 {
                     std::destroy_at(std::addressof(u.t));
                 }
@@ -263,7 +263,7 @@ namespace Yc
     struct legacy_function_tag_t
     { };
     inline constexpr legacy_function_tag_t legacy_function_tag{};
-    template<class T, class ErrorCode, ErrorCode no_error = ErrorCode{0} >
+    template<class T, class ErrorCode, ErrorCode no_err = ErrorCode{0} >
     class ec_optional
     {
         static_assert(!std::is_same_v<std::remove_cv_t<T>, std::nullopt_t>, "T shouldn't be same as std::nullopt_t");
@@ -271,25 +271,27 @@ namespace Yc
         static_assert(std::is_destructible_v<T> && (!std::is_array_v<T>) && (!std::is_reference_v<T>));
         static_assert(std::is_integral_v<ErrorCode> || std::is_enum_v<ErrorCode>);
         std::conditional_t<std::is_trivially_copyable_v<T>,
-            details::ec_optional_trivially_copyable<T, ErrorCode, no_error>,
+            details::ec_optional_trivially_copyable<T, ErrorCode, no_err>,
             std::conditional_t<std::is_trivially_destructible_v<T>,
-            details::ec_optional_trivially_destructable<T, ErrorCode, no_error>,
-            details::ec_optional_normal<T, ErrorCode, no_error>>> opt;
+            details::ec_optional_trivially_destructable<T, ErrorCode, no_err>,
+            details::ec_optional_normal<T, ErrorCode, no_err>>> opt;
         static constexpr ErrorCode default_error()noexcept
         {
-            std::array<unsigned char, sizeof(ErrorCode)> a{};
-            a = std::bit_cast<std::array<unsigned char, sizeof(ErrorCode)>>(no_error);
-            for (auto& uc : a)
+            if constexpr (std::is_integral_v<ErrorCode>)
             {
-                ++uc;
+                return no_err ^ ((ErrorCode)1);
             }
-            return std::bit_cast<ErrorCode>(a);
+            else
+            {
+                return ErrorCode((std::underlying_type_t<ErrorCode>)(no_err) ^ 1);
+            }
         }
         static inline constexpr ErrorCode default_err = default_error();
+        static_assert(no_err != default_err);
     public:
         using value_type = T;
         using error_code_type = ErrorCode;
-        static inline constexpr error_code_type no_error = no_error;
+        static inline constexpr error_code_type no_error = no_err;
         template<class Func>
         constexpr ec_optional(legacy_function_tag_t, Func f)noexcept : opt{no_error}
         {
@@ -329,10 +331,10 @@ namespace Yc
             {
                 if (has_value())
                 {
-                    ErrorCode ec = other.ec;
-                    other.emplace(other.ec, std::move(opt.u.t));
+                    ErrorCode ec = other.opt.ec;
+                    other.emplace(other.opt.ec, std::move(opt.u.t));
                     std::destroy_at(std::addressof(opt.u.t));
-                    this->ec = ec;
+                    opt.ec = ec;
                 }
                 else
                 {
