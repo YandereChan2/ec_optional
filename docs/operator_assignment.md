@@ -1,11 +1,11 @@
 # `Yc::ec_optional<T,ErrorCode,no_error>::operator=`
 
 ```C++
-constexpr operator=(const ec_optional& other)noexcept(/* 见下文 */) //(1)
+constexpr operator=(const ec_optional& other)noexcept(/* 见下文 */); //(1)
 ```
 
 ```C++
-constexpr operator=(ec_optional&& other)noexcept(/* 见下文 */) //(2)
+constexpr operator=(ec_optional&& other)noexcept(/* 见下文 */); //(2)
 ```
 
 以 `other` 的内容替换 `*this` 的内容。
@@ -31,5 +31,5 @@ constexpr operator=(ec_optional&& other)noexcept(/* 见下文 */) //(2)
 
 传播赋值或移动过程中的异常。
 
- - (1)在 `std::is_nothrow_copy_constructible_v<T> && std::is_nothrow_copy_assignable_v<T>` 为 `true` 时 `noexcept`
- - (2)在 `std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>` 为 `true` 时 `noexcept`
+ - (1)在 [`std::is_nothrow_copy_constructible_v<T>`](https://zh.cppreference.com/w/cpp/types/is_copy_constructible) `&&` [`std::is_nothrow_copy_assignable_v<T>`](https://zh.cppreference.com/w/cpp/types/is_copy_assignable) 为 `true` 时 `noexcept`
+ - (2)在 [`std::is_nothrow_move_constructible_v<T>`](https://zh.cppreference.com/w/cpp/types/is_move_constructible) `&&` [`std::is_nothrow_move_assignable_v<T>`](https://zh.cppreference.com/w/cpp/types/is_move_assignable) 为 `true` 时 `noexcept`

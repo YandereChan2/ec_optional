@@ -239,6 +239,8 @@ namespace Yc
             std::copy(arr.begin(), arr.end(), buf);
         }
 
+        bad_ec_opt_access(const bad_ec_opt_access&) = default;
+
         const char* what()const noexcept override
         {
             return "access ec_optional with error code";
@@ -261,7 +263,7 @@ namespace Yc
     };
 
     struct legacy_function_tag_t
-    { };
+    { explicit legacy_function_tag_t() = default; };
     inline constexpr legacy_function_tag_t legacy_function_tag{};
     template<class T, class ErrorCode, ErrorCode no_err = ErrorCode{0} >
     class ec_optional
@@ -324,7 +326,7 @@ namespace Yc
         {
             return has_value();
         }
-        void swap(ec_optional& other)noexcept(std::is_nothrow_move_constructible_v<T>&&
+        constexpr void swap(ec_optional& other)noexcept(std::is_nothrow_move_constructible_v<T>&&
             std::is_nothrow_swappable_v<T>)
         {
             if (has_value() != other.has_value())
@@ -462,4 +464,11 @@ namespace Yc
             return std::move(opt.u.t);
         }
     };
+
+    template<class T, class ErrorCode, ErrorCode no_err>
+    constexpr void swap(ec_optional<T, ErrorCode, no_err>& l, ec_optional<T, ErrorCode, no_err>&r)
+        noexcept(std::is_nothrow_move_constructible_v<T>&&std::is_nothrow_swappable_v<T>)
+    {
+        l.swap(r);
+    }
 }
