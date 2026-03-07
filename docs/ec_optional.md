@@ -73,6 +73,12 @@ template<
 |[`emplace`](emplace.md)|原位构造一个值，如果构造抛出异常那么设置它 _出错_ 并配置错误码，<br>（公开成员函数）|
 |[`legacy_function_invoke`](legacy_function_invoke.md)|使用C风格初始化其为 _含值_ 或 _出错_<br>（公开成员函数）|
 
+## 非成员函数
+
+| | |
+|:-|:-|
+|[`swap`](adl_swap.md)|交换内容<br>（函数模板）|
+
 ## 辅助类
 
 | | |
